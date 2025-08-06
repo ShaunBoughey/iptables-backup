@@ -1,0 +1,50 @@
+---
+- name: Ensure backup directories exist
+  file:
+    path: "{{ backup_dir }}/{{ inventory_hostname }}"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+
+- name: Backup iptables rules to a local file
+  shell: "sudo iptables-save"
+  register: iptables_output
+  delegate_to: "{{ inventory_hostname }}"
+  failed_when: false
+  become: true
+
+- name: Save iptables output to file
+  copy:
+    content: "{{ iptables_output.stdout }}"
+    dest: "{{ backup_dir }}/{{ inventory_hostname }}/{{ timestamp }}.iptables"
+    mode: '0644'
+  delegate_to: localhost
+  when: iptables_output.rc == 0
+
+- name: Report backup failure
+  debug:
+    msg: "Failed to backup iptables from {{ inventory_hostname }}: {{ iptables_output.stderr | default('Unknown error') }}"
+  when: iptables_output.rc != 0
+
+- name: Find and remove old backup files
+  find:
+    paths: "{{ backup_dir }}"
+    patterns: "*.iptables"
+    age: "{{ retention_days }}d"
+    file_type: file
+    recurse: yes
+  register: old_files
+  delegate_to: localhost
+  run_once: true
+
+- name: Remove old files
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ old_files.files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Conditionally run git tasks
+  import_tasks: git.yml
+  when: git_enabled

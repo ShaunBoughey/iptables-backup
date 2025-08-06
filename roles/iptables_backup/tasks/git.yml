@@ -1,0 +1,43 @@
+---
+- name: Check if git repository exists
+  stat:
+    path: "{{ backup_dir }}/.git"
+  register: git_repo
+  delegate_to: localhost
+  run_once: true
+
+- name: Initialize git repository if it doesn't exist
+  shell: git init
+  args:
+    chdir: "{{ backup_dir }}"
+  when: not git_repo.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: Configure git user
+  shell: |
+    git config user.name "{{ git_user }}" || true
+    git config user.email "{{ git_email }}" || true
+  args:
+    chdir: "{{ backup_dir }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Add and commit changes to git
+  shell: |
+    git add .
+    git commit -m "Backup {{ timestamp }} - {{ ansible_play_hosts | join(', ') }}" || true
+  args:
+    chdir: "{{ backup_dir }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Stage and commit cleanup changes to git
+  shell: |
+    git add .
+    git commit -m "Cleanup old backups (older than {{ retention_days }} days)" || true
+  args:
+    chdir: "{{ backup_dir }}"
+  delegate_to: localhost
+  run_once: true
+  when: old_files.files | length > 0

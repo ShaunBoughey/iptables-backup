@@ -1,0 +1,6 @@
+---
+backup_dir: "{{ playbook_dir }}/backups"
+retention_days: 30
+git_user: "Ansible"
+git_email: "ansible@localhost"
+git_enabled: true
