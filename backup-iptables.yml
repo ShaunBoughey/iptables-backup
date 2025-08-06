@@ -1,5 +1,5 @@
 ---
-- name: Backup IPTables with Git Integration and Cleanup
+- name: Backup iptables
   hosts: gateways
   gather_facts: yes
   
