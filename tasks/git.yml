@@ -23,6 +23,24 @@
   delegate_to: localhost
   run_once: true
 
+- name: Check for a remote origin
+  shell: git remote get-url origin
+  args:
+    chdir: "{{ backup_dir }}"
+  register: git_remote_check
+  failed_when: false
+  changed_when: false
+  delegate_to: localhost
+  run_once: true
+
+- name: Add remote origin if it doesn't exist
+  shell: git remote add origin "{{ git_remote_url }}"
+  args:
+    chdir: "{{ backup_dir }}"
+  when: git_remote_check.rc != 0
+  delegate_to: localhost
+  run_once: true
+
 - name: Add and commit changes to git
   shell: |
     git add .
