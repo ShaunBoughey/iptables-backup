@@ -87,7 +87,7 @@ When `git_enabled` is `true`, the role will:
 - Commit cleanup operations when old files are removed
 
 ### Git Commit Messages
-- New backups: `"Backup YYYYMMDD_HHMMSS - gateway1, gateway2"`
+- New backups: `"Backup YYYYMMDD_HHMMSS - Backed up x gateways"`
 - Cleanup operations: `"Cleanup old backups (older than 30 days)"`
 
 ## Monitoring Backup Status
@@ -103,7 +103,7 @@ ls -la backups/*/
 cat backups/gateway1/$(ls -t backups/gateway1/ | head -1)
 ```
 
-## Restoring IPTables Rules
+## Restoring iptables Rules
 
 To restore iptables rules from a backup:
 
