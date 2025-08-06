@@ -7,7 +7,7 @@
   run_once: true
 
 - name: Initialize git repository if it doesn't exist
-  shell: git init
+  shell: git init --initial-branch=main
   args:
     chdir: "{{ backup_dir }}"
   when: not git_repo.stat.exists
@@ -44,7 +44,7 @@
 - name: Add and commit changes to git
   shell: |
     git add .
-    git commit -m "Backup {{ timestamp }} - {{ ansible_play_hosts | join(', ') }}" || true
+    git commit -m "Backup {{ timestamp }} - Backed up {{ ansible_play_hosts | length }} gateways" || true
   args:
     chdir: "{{ backup_dir }}"
   delegate_to: localhost
@@ -59,3 +59,11 @@
   delegate_to: localhost
   run_once: true
   when: old_files.files | length > 0
+
+- name: Push all changes to the remote repository
+  shell: git push origin main
+  args:
+    chdir: "{{ backup_dir }}"
+  delegate_to: localhost
+  run_once: true
+  when: git_enabled and git_remote_url is defined and git_remote_url | length > 0
